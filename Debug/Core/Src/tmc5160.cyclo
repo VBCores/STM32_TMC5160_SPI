@@ -1,0 +1,4 @@
+../Core/Src/tmc5160.c:24:6:tmc5160_write	1
+../Core/Src/tmc5160.c:33:6:tmc5160_ReadWrite	1
+../Core/Src/tmc5160.c:44:6:tmc5160_write_IT	1
+../Core/Src/tmc5160.c:53:6:tmc5160_ReadWrite_IT	1
