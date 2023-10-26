@@ -1,4 +1,9 @@
-../Core/Src/tmc5160.c:24:6:tmc5160_write	16	static
-../Core/Src/tmc5160.c:33:6:tmc5160_ReadWrite	24	static
-../Core/Src/tmc5160.c:44:6:tmc5160_write_IT	16	static
-../Core/Src/tmc5160.c:53:6:tmc5160_ReadWrite_IT	16	static
+../Core/Src/tmc5160.c:26:6:tmc5160_position	24	static
+../Core/Src/tmc5160.c:38:6:tmc5160_velocity	32	static
+../Core/Src/tmc5160.c:80:6:tmc5160_effort	32	static
+../Core/Src/tmc5160.c:100:6:tmc5160_write	16	static
+../Core/Src/tmc5160.c:110:6:tmc5160_ReadWrite	24	static
+../Core/Src/tmc5160.c:120:6:tmc5160_init	24	static
+../Core/Src/tmc5160.c:158:8:clamp_value_noref	32	static
+../Core/Src/tmc5160.c:164:6:clamp_value	24	static
+../Core/Src/tmc5160.c:169:9:torque_to_curent	32	static

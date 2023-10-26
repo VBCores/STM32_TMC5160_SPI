@@ -12,9 +12,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <tmc5160_constants.h>
 
-#include <5160_Registers.h>
-#include <5160_Constants.h>
+#include <tmc5160_registers.h>
 
 
 #define		_STEPPER_MOTOR_DRIVER_SPI			hspi1
@@ -34,10 +34,25 @@
   * @retval bool status
   */
 
-void tmc5160_ReadWrite(uint8_t* Tdata, uint8_t* Rdata);
+void tmc5160_init();
+
+void tmc5160_position(int32_t position);
+
+void tmc5160_velocity(uint32_t vel);
+
+void tmc5160_effort(uint8_t effort);
+
 void tmc5160_write(uint8_t* data);
-void tmc5160_write_IT(uint8_t* data);
-void tmc5160_ReadWrite_IT(uint8_t* WData, uint8_t* RData);
+
+void clamp_value(double *min_value, double *value, double *max_value);
+
+double clamp_value_noref(double min_value, double value, double max_value);
+
+uint8_t torque_to_curent(double effort, double max_effort);
+
+//void tmc5160_ReadWrite(uint8_t* Tdata, uint8_t* Rdata);
+//void tmc5160_write_IT(uint8_t* data);
+//void tmc5160_ReadWrite_IT(uint8_t* WData, uint8_t* RData);
 
 
 #endif /* INC_TMC5160_H_ */

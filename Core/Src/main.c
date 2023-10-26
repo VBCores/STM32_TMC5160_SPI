@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 
 #include <tmc5160.h>
+#include <tmc5160_constants.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,98 +92,35 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  //Config via pins see p.116 of TMC5160 datasheet
-
-
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); //DRV SLEEP 0 for power on, 1 for power off
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET); //SPI_MODE ON
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET); //SD_MODE OFF INTERNAL RAMP GENERATOR ON
-
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); //CS HIGH
-
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET); //DIR
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); //STEP
-  HAL_Delay(100);
-
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-/*
-  SPI send: 0xEC000100C3; // CHOPCONF: TOFF=3, HSTRT=4, HEND=1, TBL=2, CHM=0 (SpreadCycle)
-  SPI send: 0x9000061F0A; // IHOLD_IRUN: IHOLD=10, IRUN=31 (max. current), IHOLDDELAY=6
-  SPI send: 0x910000000A; // TPOWERDOWN=10: Delay before power down in stand still
-  SPI send: 0x8000000004; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
-  SPI send: 0x93000001F4; // TPWM_THRS=500 yields a switching velocity about 35000 = ca. 30RPM
-*/
+  tmc5160_init();
 
+while (1)
+{
 
+uint32_t pos = NEMA14_FULLSTEPS;
 
-  uint8_t RData[5] = {0};
-  uint8_t WData[5] = {0};
+tmc5160_velocity(100000);
+//HAL_Delay(100);
+tmc5160_position(pos);
 
+HAL_Delay(15000);
 
-  WData[0] = 0xEC; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC3; // CHOPCONF: TOFF=3, HSTRT=4, HEND=1, TBL=2, CHM=0 (SpreadCycle)
-  tmc5160_ReadWrite(WData, RData);
+tmc5160_position(0);
 
-  WData[0] = 0x90; WData[1] = 0x00; WData[2] = 0x06; WData[3] = 0x02; WData[4] = 0x01; // IHOLD_IRUN: IHOLD=10,  IRUN=31 (max. current), IHOLDDELAY=10
-  tmc5160_ReadWrite(WData, RData);
+HAL_Delay(15000);
 
-  WData[0] = 0x91; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // TPOWERDOWN=10: Delay before power down in stand still
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x01; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0x93; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC8; // TPWM_THRS=200 yields a switching velocity about 35000 = ca. 30RPM
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xA4; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x4e; WData[4] = 0x20; //SPI send: 0xA4000003E8; // A1 = 20 000 First acceleration
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xA6; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x13; WData[4] = 0x88; //SPI send: 0xA6000001F4; // AMAX = 5 000 Acceleration above V1
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xA5; WData[1] = 0x00; WData[2] = 0x16; WData[3] = 0xe3; WData[4] = 0x60; //SPI send: 0xA50000C350; // V1 = 1 200 000 Acceleration threshold velocity V1
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xA7; WData[1] = 0x00; WData[2] = 0x16; WData[3] = 0x20; WData[4] = 0x10; //SPI send: 0xA700030D40; // VMAX = 1 500 000
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xA8; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x13; WData[4] = 0x88; //SPI send: 0xA8000002BC; // DMAX = 5 000 Deceleration above V1
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xAA; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x4e; WData[4] = 0x20; //SPI send: 0xAA00000578; // D1 = 10 000 Deceleration below V1
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xAB; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; //SPI send: 0xAB0000000A; // VSTOP = 10 Stop velocity (Near to zero)
-  tmc5160_ReadWrite(WData, RData);
-
-  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x00; //SPI send: 0xA000000000; // RAMPMODE = 0 (Target position move)
-  tmc5160_ReadWrite(WData, RData);
-
-  HAL_Delay(100);
-
-  while (1)
-  {
-
-
-
-	  WData[0] = 0xAD; WData[1] = 0x00; WData[2] = 0x0e; WData[3] = 0xc9; WData[4] = 0x28  ; // SPI send: 0xADFFFF3800; // XTARGET = -60000 (Move one rotation left (200*256 microsteps)
-	  tmc5160_ReadWrite(WData, RData);
-
-	  HAL_Delay(5000);
-
-	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_2);
-
-
-	  WData[0] = 0xAD; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x00; // SPI send: 0xADFFFF3800; // XTARGET = 60000 (Move one rotation left (200*256 microsteps)
-	  tmc5160_ReadWrite(WData, RData);
-
-	  HAL_Delay(5000);
-
+tmc5160_velocity(1700000);
+//HAL_Delay(100);
+tmc5160_position(pos);
+HAL_Delay(5000);
+tmc5160_position(0);
+HAL_Delay(5000);
 
     /* USER CODE END WHILE */
 
