@@ -1,6 +1,6 @@
 ../Core/Src/tmc5160.c:26:6:tmc5160_position	24	static
 ../Core/Src/tmc5160.c:38:6:tmc5160_velocity	32	static
-../Core/Src/tmc5160.c:80:6:tmc5160_effort	32	static
+../Core/Src/tmc5160.c:80:6:tmc5160_effort	40	static
 ../Core/Src/tmc5160.c:100:6:tmc5160_write	16	static
 ../Core/Src/tmc5160.c:110:6:tmc5160_ReadWrite	24	static
 ../Core/Src/tmc5160.c:120:6:tmc5160_init	24	static

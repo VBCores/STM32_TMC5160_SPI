@@ -104,19 +104,19 @@ while (1)
 {
 
 uint32_t pos = NEMA14_FULLSTEPS;
+HAL_Delay(500);
+
 
 tmc5160_velocity(100000);
-//HAL_Delay(100);
+tmc5160_effort(0.2);
 tmc5160_position(pos);
-
 HAL_Delay(15000);
 
 tmc5160_position(0);
-
 HAL_Delay(15000);
 
 tmc5160_velocity(1700000);
-//HAL_Delay(100);
+tmc5160_effort(0.5);
 tmc5160_position(pos);
 HAL_Delay(5000);
 tmc5160_position(0);

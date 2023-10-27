@@ -40,7 +40,7 @@ void tmc5160_position(int32_t position);
 
 void tmc5160_velocity(uint32_t vel);
 
-void tmc5160_effort(uint8_t effort);
+void tmc5160_effort(double effort);
 
 void tmc5160_write(uint8_t* data);
 

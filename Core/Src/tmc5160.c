@@ -77,9 +77,9 @@ void tmc5160_velocity(uint32_t vel)
 	tmc5160_write(WData);
 }
 
-void tmc5160_effort(uint8_t effort)
+void tmc5160_effort(double effort)
 {
-float clamp_effort;
+double clamp_effort;
 uint8_t IRUN = 0;
 uint8_t IHOLD = 0;
 uint8_t WData[5] = {0};
@@ -90,7 +90,7 @@ IHOLD = IRUN >> 1;
 
 WData[0] = 0x90;
 WData[1] = 0x00;
-WData[2] = 0x06; // IHOLDDELAY=6 TODO?
+WData[2] = 0x00; // IHOLDDELAY=0 TODO?
 WData[3] = IRUN; // IRUN
 WData[4] = IHOLD; // IHOLD
 
@@ -135,7 +135,7 @@ void tmc5160_init()
 	  WData[0] = 0xEC; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC3; // CHOPCONF: TOFF=3, HSTRT=4, HEND=1, TBL=2, CHM=0 (SpreadCycle)
 	  tmc5160_write(WData);
 
-	  WData[0] = 0x90; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x0A; WData[4] = 0x01; //  IHOLDDELAY=10,  IRUN=10/31,  IHOLD=02/31
+	  WData[0] = 0x90; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x01; WData[4] = 0x01; //  IHOLDDELAY=10,  IRUN=10/31,  IHOLD=02/31
 	  tmc5160_write(WData);
 
 	  WData[0] = 0x91; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // TPOWERDOWN=10: Delay before power down in stand still
