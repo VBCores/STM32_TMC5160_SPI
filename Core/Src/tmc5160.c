@@ -107,8 +107,14 @@ void tmc5160_write(uint8_t* data)
 }
 
 
-void tmc5160_ReadWrite(uint8_t* WData, uint8_t* RData)
+void tmc5160_read(uint8_t* WData, uint8_t* RData)
 {
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CS LOW
+	tmc5160_delay(1);
+	HAL_SPI_TransmitReceive(&_STEPPER_MOTOR_DRIVER_SPI, WData, RData, 5, HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); //CS HIGH
+	tmc5160_delay(1);
+
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CS LOW
 	tmc5160_delay(1);
 	HAL_SPI_TransmitReceive(&_STEPPER_MOTOR_DRIVER_SPI, WData, RData, 5, HAL_MAX_DELAY);
@@ -116,6 +122,49 @@ void tmc5160_ReadWrite(uint8_t* WData, uint8_t* RData)
 	tmc5160_delay(1);
 }
 
+
+int32_t tmc5160_position_read()
+{
+	uint8_t WData[5] = {0};
+	uint8_t RData[5] = {0};
+	WData[0] = 0x21; //XACTUAL register address
+	tmc5160_read(WData, RData);
+
+	int32_t response = 0;
+
+    response |= (RData[1]);
+    response <<= 8;
+    response |= (RData[2]);
+    response <<= 8;
+    response |= (RData[3]);
+    response <<= 8;
+    response |= (RData[4]);
+
+	return response;
+}
+
+int32_t tmc5160_velocity_read()
+{
+	uint8_t WData[5] = {0};
+	uint8_t RData[5] = {0};
+	WData[0] = 0x22; //VACTUAL register address
+	tmc5160_read(WData, RData);
+
+	int32_t response = 0;
+
+    response |= (RData[1] & 0xFF);
+    response <<= 8;
+    response |= (RData[2] & 0xFF);
+    response <<= 8;
+    response |= (RData[3] & 0xFF);
+    response <<= 8;
+    response |= (RData[4] & 0xFF);
+
+    int32_t rv = 0;
+    rv = sign_extend_bits_to_32(response, 24);
+
+	return rv;
+}
 
 void tmc5160_init()
 {
@@ -153,6 +202,24 @@ void tmc5160_init()
 	  tmc5160_write(WData);
 
 	  HAL_Delay(100);
+}
+
+int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits) {
+
+	uint32_t sign_mask = 0;
+	//getting sign bit
+	sign_mask = 1u << (bits - 1);
+	uint32_t sign_bit = 0;
+	sign_bit = x & sign_mask;
+	if(sign_bit)
+	{
+		int32_t res = 0;
+		int32_t mask = 0b11111111;
+		res |= x;
+		res |= (mask << (bits));
+		return res;
+	}
+    return x;
 }
 
 double clamp_value_noref(double min_value, double value, double max_value)

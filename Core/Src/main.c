@@ -25,7 +25,6 @@
 /* USER CODE BEGIN Includes */
 
 #include <tmc5160.h>
-#include <tmc5160_constants.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,23 +103,18 @@ while (1)
 {
 
 uint32_t pos = NEMA14_FULLSTEPS;
+int32_t pos_to_read = 0;
+int32_t vel= 0;
 HAL_Delay(500);
 
-
-tmc5160_velocity(100000);
-tmc5160_effort(0.2);
-tmc5160_position(pos);
-HAL_Delay(15000);
-
+pos_to_read = tmc5160_position_read();
+tmc5160_velocity(500001);
+tmc5160_effort(0.1);
+tmc5160_position(pos*5);
+vel = tmc5160_velocity_read();
+HAL_Delay(20000);
 tmc5160_position(0);
-HAL_Delay(15000);
-
-tmc5160_velocity(1700000);
-tmc5160_effort(0.5);
-tmc5160_position(pos);
-HAL_Delay(5000);
-tmc5160_position(0);
-HAL_Delay(5000);
+vel = tmc5160_velocity_read();
 
     /* USER CODE END WHILE */
 

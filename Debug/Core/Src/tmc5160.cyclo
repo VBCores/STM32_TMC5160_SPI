@@ -2,8 +2,11 @@
 ../Core/Src/tmc5160.c:38:6:tmc5160_velocity	1
 ../Core/Src/tmc5160.c:80:6:tmc5160_effort	1
 ../Core/Src/tmc5160.c:100:6:tmc5160_write	1
-../Core/Src/tmc5160.c:110:6:tmc5160_ReadWrite	1
-../Core/Src/tmc5160.c:120:6:tmc5160_init	1
-../Core/Src/tmc5160.c:158:8:clamp_value_noref	3
-../Core/Src/tmc5160.c:164:6:clamp_value	3
-../Core/Src/tmc5160.c:169:9:torque_to_curent	1
+../Core/Src/tmc5160.c:110:6:tmc5160_read	1
+../Core/Src/tmc5160.c:126:9:tmc5160_position_read	1
+../Core/Src/tmc5160.c:146:9:tmc5160_velocity_read	1
+../Core/Src/tmc5160.c:169:6:tmc5160_init	1
+../Core/Src/tmc5160.c:207:9:sign_extend_bits_to_32	2
+../Core/Src/tmc5160.c:225:8:clamp_value_noref	3
+../Core/Src/tmc5160.c:231:6:clamp_value	3
+../Core/Src/tmc5160.c:236:9:torque_to_curent	1
