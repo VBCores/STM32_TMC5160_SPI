@@ -44,7 +44,7 @@ void tmc5160_velocity(uint32_t vel);
 
 int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits);
 
-//int16_t tmc5160_velocity_read();
+int32_t tmc5160_velocity_read();
 
 void tmc5160_effort(double effort);
 

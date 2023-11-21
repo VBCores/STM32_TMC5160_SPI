@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#if (_ENCODER_USE_FREERTOS == 1)
+#if (USE_FREERTOS == 1)
 #include "cmsis_os.h"
 #define tmc5160_delay(x)   osDelay(x)
 #else
@@ -37,6 +37,7 @@ void tmc5160_position(int32_t position)
 
 void tmc5160_velocity(uint32_t vel)
 {
+	vel *= 1.3981013;
 	uint32_t v1;
 	uint8_t WData[5] = {0};
 
@@ -100,26 +101,20 @@ tmc5160_write(WData);
 void tmc5160_write(uint8_t* data)
 {
 	HAL_GPIO_WritePin(_STEPPER_MOTOR_DRIVER_NSS_GPIO, _STEPPER_MOTOR_DRIVER_NSS_PIN, GPIO_PIN_RESET); //CS LOW
-	tmc5160_delay(1);
 	HAL_SPI_Transmit(&_STEPPER_MOTOR_DRIVER_SPI, data, 5, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(_STEPPER_MOTOR_DRIVER_NSS_GPIO, _STEPPER_MOTOR_DRIVER_NSS_PIN, GPIO_PIN_SET); //CS HIGH
-	tmc5160_delay(1);
 }
 
 
 void tmc5160_read(uint8_t* WData, uint8_t* RData)
 {
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CS LOW
-	tmc5160_delay(1);
 	HAL_SPI_TransmitReceive(&_STEPPER_MOTOR_DRIVER_SPI, WData, RData, 5, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); //CS HIGH
-	tmc5160_delay(1);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); //CS LOW
-	tmc5160_delay(1);
 	HAL_SPI_TransmitReceive(&_STEPPER_MOTOR_DRIVER_SPI, WData, RData, 5, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); //CS HIGH
-	tmc5160_delay(1);
 }
 
 
@@ -163,7 +158,7 @@ int32_t tmc5160_velocity_read()
     int32_t rv = 0;
     rv = sign_extend_bits_to_32(response, 24);
 
-	return rv;
+	return (rv / 1.3981013);
 }
 
 void tmc5160_init()
@@ -207,11 +202,11 @@ void tmc5160_init()
 int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits) {
 
 	uint32_t sign_mask = 0;
-	//getting sign bit
+	//getting value of sign bit
 	sign_mask = 1u << (bits - 1);
 	uint32_t sign_bit = 0;
 	sign_bit = x & sign_mask;
-	if(sign_bit)
+	if(sign_bit) //if value < 0 therefor sign_bit == 1, fill first 8 bits with 1
 	{
 		int32_t res = 0;
 		int32_t mask = 0b11111111;
@@ -219,7 +214,7 @@ int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits) {
 		res |= (mask << (bits));
 		return res;
 	}
-    return x;
+    return x; //else return value itself
 }
 
 double clamp_value_noref(double min_value, double value, double max_value)
