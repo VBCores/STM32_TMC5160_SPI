@@ -99,6 +99,10 @@ int main(void)
 
   tmc5160_init();
 
+  //pick rotation direction, forward by default
+  //tmc5160_set_forward_motor_direction();
+  //tmc5160_set_inverse_motor_direction();
+
 while (1)
 {
 

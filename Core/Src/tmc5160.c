@@ -161,6 +161,21 @@ int32_t tmc5160_velocity_read()
 	return (rv / 1.3981013);
 }
 
+
+void tmc5160_set_inverse_motor_direction()
+{
+	  uint8_t WData[5] = {0};
+	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x14; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
+	  tmc5160_write(WData);
+}
+
+void tmc5160_set_forward_motor_direction()
+{
+	  uint8_t WData[5] = {0};
+	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x04; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
+	  tmc5160_write(WData);
+}
+
 void tmc5160_init()
 {
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); //DRV SLEEP 0 for power on, 1 for power off
@@ -185,7 +200,7 @@ void tmc5160_init()
 	  WData[0] = 0x91; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // TPOWERDOWN=10: Delay before power down in stand still
 	  tmc5160_write(WData);
 
-	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x01; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
+	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x04; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
 	  tmc5160_write(WData);
 
 	  tmc5160_velocity(1000000); //initial vel config

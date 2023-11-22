@@ -48,6 +48,8 @@ int32_t tmc5160_velocity_read();
 
 void tmc5160_effort(double effort);
 
+void tmc5160_set_inverse_motor_direction();
+
 void tmc5160_write(uint8_t* data);
 
 void tmc5160_read(uint8_t* WData, uint8_t* RData);
