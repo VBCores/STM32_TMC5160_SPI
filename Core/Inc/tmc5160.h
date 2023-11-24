@@ -52,6 +52,10 @@ void tmc5160_set_inverse_motor_direction();
 
 void tmc5160_set_forward_motor_direction();
 
+void tmc5160_arm();
+
+void tmc5160_disarm();
+
 void tmc5160_write(uint8_t* data);
 
 void tmc5160_read(uint8_t* WData, uint8_t* RData);

@@ -158,22 +158,7 @@ int32_t tmc5160_velocity_read()
     int32_t rv = 0;
     rv = sign_extend_bits_to_32(response, 24);
 
-	return (rv / 1.3981013);
-}
-
-
-void tmc5160_set_inverse_motor_direction()
-{
-	  uint8_t WData[5] = {0};
-	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x14; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
-	  tmc5160_write(WData);
-}
-
-void tmc5160_set_forward_motor_direction()
-{
-	  uint8_t WData[5] = {0};
-	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x04; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
-	  tmc5160_write(WData);
+	return (rv / 1.3981013); //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" pg.39 of datasheet
 }
 
 void tmc5160_init()
@@ -212,6 +197,32 @@ void tmc5160_init()
 	  tmc5160_write(WData);
 
 	  HAL_Delay(100);
+}
+
+
+void tmc5160_set_inverse_motor_direction()
+{
+	  uint8_t WData[5] = {0};
+	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x14; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
+	  tmc5160_write(WData);
+}
+
+void tmc5160_set_forward_motor_direction()
+{
+	  uint8_t WData[5] = {0};
+	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x04; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
+	  tmc5160_write(WData);
+}
+
+
+void tmc5160_disarm()
+{
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET); //DRV SLEEP 0 for power on, 1 for power off
+}
+
+void tmc5160_arm()
+{
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); //DRV SLEEP 0 for power on, 1 for power off
 }
 
 int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits) {
