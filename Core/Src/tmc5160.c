@@ -225,6 +225,26 @@ void tmc5160_arm()
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); //DRV SLEEP 0 for power on, 1 for power off
 }
 
+void tmc5160_stop()
+{
+	uint8_t WData[5] = {0};
+	uint8_t RData[5] = {0};
+	WData[0] = 0x21; //XACTUAL register address
+	tmc5160_read(WData, RData);
+
+	int32_t response = 0;
+
+    response |= (RData[1]);
+    response <<= 8;
+    response |= (RData[2]);
+    response <<= 8;
+    response |= (RData[3]);
+    response <<= 8;
+    response |= (RData[4]);
+
+    tmc5160_position(response);
+}
+
 int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits) {
 
 	uint32_t sign_mask = 0;

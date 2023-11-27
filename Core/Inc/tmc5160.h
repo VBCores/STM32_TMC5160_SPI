@@ -56,6 +56,8 @@ void tmc5160_arm();
 
 void tmc5160_disarm();
 
+void tmc5160_stop();
+
 void tmc5160_write(uint8_t* data);
 
 void tmc5160_read(uint8_t* WData, uint8_t* RData);
