@@ -38,6 +38,8 @@ void tmc5160_init();
 
 void tmc5160_position(int32_t position);
 
+void tmc5160_move(int32_t vel);
+
 int32_t tmc5160_position_read();
 
 void tmc5160_velocity(uint32_t vel);

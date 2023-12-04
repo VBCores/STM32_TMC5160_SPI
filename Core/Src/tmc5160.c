@@ -27,6 +27,9 @@ void tmc5160_position(int32_t position)
 {
 	uint8_t WData[5] = {0};
 
+	WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x00; //SPI send: 0xA000000000; // RAMPMODE = 1 (position move)
+	  tmc5160_write(WData);
+
 	WData[0] = 0xAD; //moving register
 	WData[1] = (position & 0xFF000000) >> 24; //position in steps
 	WData[2] = (position & 0x00FF0000) >> 16;
@@ -35,9 +38,39 @@ void tmc5160_position(int32_t position)
 	tmc5160_write(WData);
 }
 
+void tmc5160_move(int32_t vel)
+{
+	vel *= 1.3981013; //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" pg.39 of datasheet
+	int32_t v1;
+	uint8_t WData[5] = {0};
+
+	WData[0] = 0xA6; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x13; WData[4] = 0x88; // AMAX = 5 000 Acceleration above V1
+	tmc5160_write(WData);
+
+	if (vel > 0) //select positive or negative mode depending on vel sign
+	{
+		  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x01; //SPI send: 0xA000000001; // RAMPMODE = 1 (positive velocity move)
+		  tmc5160_write(WData);
+	}
+	else
+	{
+		  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x02; //SPI send: 0xA000000001; // RAMPMODE = 2 (negative velocity move)
+		  tmc5160_write(WData);
+	}
+
+	vel = abs(vel);
+	//sending VMAX
+	WData[0] = 0xA7; //VMAX speed register
+	WData[1] = (vel & 0xFF000000) >> 24;
+	WData[2] = (vel & 0x00FF0000) >> 16;
+	WData[3] = (vel & 0x0000FF00) >> 8;
+	WData[4] = (vel & 0x000000FF);
+	tmc5160_write(WData);
+}
+
 void tmc5160_velocity(uint32_t vel)
 {
-	vel *= 1.3981013;
+	vel *= 1.3981013; //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" pg.39 of datasheet
 	uint32_t v1;
 	uint8_t WData[5] = {0};
 
@@ -46,10 +79,10 @@ void tmc5160_velocity(uint32_t vel)
 	WData[0] = 0xA3; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // Start acceleration = 10 (Near start)
 	tmc5160_write(WData);
 
-	WData[0] = 0xA4; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x4e; WData[4] = 0x20; // A1 = 20 000 First acceleration
+	WData[0] = 0xA4; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x6e; WData[4] = 0x20; // A1 = 10 000 First acceleration
 	tmc5160_write(WData);
 
-	WData[0] = 0xA6; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x13; WData[4] = 0x88; // AMAX = 5 000 Acceleration above V1
+	WData[0] = 0xA6; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x23; WData[4] = 0x88; // AMAX = 5 000 Acceleration above V1
 	tmc5160_write(WData);
 
 	//Acceleration threshold velocity V1
@@ -68,10 +101,10 @@ void tmc5160_velocity(uint32_t vel)
 	WData[4] = (vel & 0x000000FF);
 	tmc5160_write(WData);
 
-	WData[0] = 0xA8; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x13; WData[4] = 0x88; // DMAX = 5 000 Deceleration above V1
+	WData[0] = 0xA8; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x23; WData[4] = 0x88; // DMAX = 5 000 Deceleration above V1
 	tmc5160_write(WData);
 
-	WData[0] = 0xAA; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x4e; WData[4] = 0x20; // D1 = 10 000 Deceleration below V1
+	WData[0] = 0xAA; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x6e; WData[4] = 0x20; // D1 = 10 000 Deceleration below V1
 	tmc5160_write(WData);
 
 	WData[0] = 0xAB; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // VSTOP = 10 Stop velocity (Near to zero)
@@ -173,7 +206,6 @@ void tmc5160_init()
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); //STEP
 	HAL_Delay(100);
 
-	  uint8_t RData[5] = {0};
 	  uint8_t WData[5] = {0};
 
 	  WData[0] = 0xEC; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC3; // CHOPCONF: TOFF=3, HSTRT=4, HEND=1, TBL=2, CHM=0 (SpreadCycle)
@@ -245,6 +277,8 @@ void tmc5160_stop()
     tmc5160_position(response);
 }
 
+
+//TODO make sure that is works for less than 24 bit values
 int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits) {
 
 	uint32_t sign_mask = 0;
@@ -252,7 +286,7 @@ int32_t sign_extend_bits_to_32(int32_t x, uint8_t bits) {
 	sign_mask = 1u << (bits - 1);
 	uint32_t sign_bit = 0;
 	sign_bit = x & sign_mask;
-	if(sign_bit) //if value < 0 therefor sign_bit == 1, fill first 8 bits with 1
+	if(sign_bit) //if value < 0 therefore sign_bit == 1, fill first 8 bits with 1
 	{
 		int32_t res = 0;
 		int32_t mask = 0b11111111;
