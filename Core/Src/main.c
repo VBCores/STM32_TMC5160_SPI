@@ -109,29 +109,12 @@ while (1)
 uint32_t pos = NEMA14_FULLSTEPS;
 int32_t pos_to_read = 0;
 int32_t vel= 800001;
-int32_t nvel = -400001;
-//HAL_Delay(500);
-//tmc5160_velocity(500001);
 
-for (int i = 1; i < 10; i++)
-{
-	vel = vel/i;
-	tmc5160_move(vel);
-	HAL_Delay(2000);
-}
+HAL_Delay(600);
 
-tmc5160_stop();
-HAL_Delay(7000);
 
-for (int i = 10; i < 1; i--)
-{
-	vel = vel/i;
-	tmc5160_move(-vel);
-	HAL_Delay(2000);
-}
-
-tmc5160_stop();
-HAL_Delay(7000);
+tmc5160_move(-vel);
+//HAL_Delay(7000);
 
     /* USER CODE END WHILE */
 

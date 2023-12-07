@@ -40,23 +40,30 @@ void tmc5160_position(int32_t position)
 
 void tmc5160_move(int32_t vel)
 {
-	vel *= 1.3981013; //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" pg.39 of datasheet
+	vel *= 1.3981013; //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" see ref on p. 81 of datasheet
 	int32_t v1;
 	uint8_t WData[5] = {0};
 
-	WData[0] = 0xA6; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x13; WData[4] = 0x88; // AMAX = 5 000 Acceleration above V1
-	tmc5160_write(WData);
+	v1 = vel >> 1; // >> 1 (to divide by 2)
 
-	if (vel > 0) //select positive or negative mode depending on vel sign
+	if (vel < 0) //select positive or negative mode depending on vel sign
 	{
-		  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x01; //SPI send: 0xA000000001; // RAMPMODE = 1 (positive velocity move)
+		  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x02; //SPI send: 0xA000000001; // RAMPMODE = 1 (positive velocity move)
 		  tmc5160_write(WData);
 	}
 	else
 	{
-		  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x02; //SPI send: 0xA000000001; // RAMPMODE = 2 (negative velocity move)
+		  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x01; //SPI send: 0xA000000001; // RAMPMODE = 2 (negative velocity move)
 		  tmc5160_write(WData);
 	}
+
+	//Acceleration threshold velocity V1
+	WData[0] = 0xA5; //V1 speed register
+	WData[1] = (v1 & 0xFF000000) >> 24;
+	WData[2] = (v1 & 0x00FF0000) >> 16;
+	WData[3] = (v1 & 0x0000FF00) >> 8;
+	WData[4] = (v1 & 0x000000FF);
+	tmc5160_write(WData);
 
 	vel = abs(vel);
 	//sending VMAX
@@ -70,20 +77,11 @@ void tmc5160_move(int32_t vel)
 
 void tmc5160_velocity(uint32_t vel)
 {
-	vel *= 1.3981013; //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" pg.39 of datasheet
+	vel *= 1.3981013; //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" see ref on p. 81 of datasheet
 	uint32_t v1;
 	uint8_t WData[5] = {0};
 
 	v1 = vel >> 1; // >> 1 (to divide by 2)
-
-	WData[0] = 0xA3; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // Start acceleration = 10 (Near start)
-	tmc5160_write(WData);
-
-	WData[0] = 0xA4; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x6e; WData[4] = 0x20; // A1 = 10 000 First acceleration
-	tmc5160_write(WData);
-
-	WData[0] = 0xA6; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x23; WData[4] = 0x88; // AMAX = 5 000 Acceleration above V1
-	tmc5160_write(WData);
 
 	//Acceleration threshold velocity V1
 	WData[0] = 0xA5; //V1 speed register
@@ -101,14 +99,6 @@ void tmc5160_velocity(uint32_t vel)
 	WData[4] = (vel & 0x000000FF);
 	tmc5160_write(WData);
 
-	WData[0] = 0xA8; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x23; WData[4] = 0x88; // DMAX = 5 000 Deceleration above V1
-	tmc5160_write(WData);
-
-	WData[0] = 0xAA; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x6e; WData[4] = 0x20; // D1 = 10 000 Deceleration below V1
-	tmc5160_write(WData);
-
-	WData[0] = 0xAB; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // VSTOP = 10 Stop velocity (Near to zero)
-	tmc5160_write(WData);
 }
 
 void tmc5160_effort(double effort)
@@ -130,6 +120,45 @@ WData[4] = IHOLD; // IHOLD
 
 tmc5160_write(WData);
 }
+
+
+void tmc5160_acceleration(uint32_t acc)
+{
+	uint8_t WData[5] = {0};
+	uint8_t Tk = 65; //time constant. Acceleration equals steps/Tk see ref on p. 81 of datasheet
+	acc = acc / Tk;
+
+	WData[0] = 0xA3; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // Start acceleration = 10 (Near start)
+	tmc5160_write(WData);
+
+	// A1 First acceleration
+	WData[0] = 0xA4;
+	WData[3] = (acc & 0x0000FF00) >> 8;
+	WData[4] = (acc & 0x000000FF);
+	tmc5160_write(WData);
+
+	// AMAX Acceleration above V1
+	WData[0] = 0xA6;
+	WData[3] = (acc & 0x0000FF00) >> 8;
+	WData[4] = (acc & 0x000000FF);
+	tmc5160_write(WData);
+
+	// DMAX Deceleration above V1
+	WData[0] = 0xA8;
+	WData[3] = (acc & 0x0000FF00) >> 8;
+	WData[4] = (acc & 0x000000FF);
+	tmc5160_write(WData);
+
+	// D1 Deceleration below V1
+	WData[0] = 0xAA;
+	WData[3] = (acc & 0x0000FF00) >> 8;
+	WData[4] = (acc & 0x000000FF);
+	tmc5160_write(WData);
+
+	WData[0] = 0xAB; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // VSTOP = 10 Stop velocity (Near to zero)
+	tmc5160_write(WData);
+}
+
 
 void tmc5160_write(uint8_t* data)
 {
@@ -191,7 +220,7 @@ int32_t tmc5160_velocity_read()
     int32_t rv = 0;
     rv = sign_extend_bits_to_32(response, 24);
 
-	return (rv / 1.3981013); //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" pg.39 of datasheet
+	return (rv / 1.3981013); //1.3981.. is the time ratio according to "Microstep velocity time reference t for velocities: TSTEP = fCLK / fSTEP" see ref on p. 81 of datasheet
 }
 
 void tmc5160_init()
@@ -206,29 +235,47 @@ void tmc5160_init()
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); //STEP
 	HAL_Delay(100);
 
-	  uint8_t WData[5] = {0};
+	uint8_t WData[5] = {0};
 
-	  WData[0] = 0xEC; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC3; // CHOPCONF: TOFF=3, HSTRT=4, HEND=1, TBL=2, CHM=0 (SpreadCycle)
-	  tmc5160_write(WData);
+	WData[0] = 0xEC; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC3; // CHOPCONF: TOFF=3, HSTRT=4, HEND=1, TBL=2, CHM=0 (SpreadCycle)
+	tmc5160_write(WData);
 
-	  WData[0] = 0x90; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x01; WData[4] = 0x01; //  IHOLDDELAY=10,  IRUN=10/31,  IHOLD=02/31
-	  tmc5160_write(WData);
+	WData[0] = 0x90; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x01; WData[4] = 0x01; //  IHOLDDELAY=10,  IRUN=10/31,  IHOLD=02/31
+	tmc5160_write(WData);
 
-	  WData[0] = 0x91; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // TPOWERDOWN=10: Delay before power down in stand still
-	  tmc5160_write(WData);
+	WData[0] = 0x91; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // TPOWERDOWN=10: Delay before power down in stand still
+	tmc5160_write(WData);
 
-	  WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x04; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
-	  tmc5160_write(WData);
+	WData[0] = 0x80; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x04; // EN_PWM_MODE=1 enables StealthChop (with default PWMCONF)
+	tmc5160_write(WData);
 
-	  tmc5160_velocity(1000000); //initial vel config
+	tmc5160_velocity(1000000); //initial vel config
 
-	  WData[0] = 0x93; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC8; // TPWM_THRS=200 yields a switching velocity about 35000 = ca. 30RPM
-	  tmc5160_write(WData);
+	WData[0] = 0x93; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0xC8; // TPWM_THRS=200 yields a switching velocity about 35000 = ca. 30RPM
+	tmc5160_write(WData);
 
-	  WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x00; //SPI send: 0xA000000000; // RAMPMODE = 0 (Target position move)
-	  tmc5160_write(WData);
+	WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x00; //SPI send: 0xA000000000; // RAMPMODE = 0 (Target position move)
+	tmc5160_write(WData);
 
-	  HAL_Delay(100);
+	WData[0] = 0xA3; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // Start acceleration = 10 (Near start)
+	tmc5160_write(WData);
+
+	WData[0] = 0xA4; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x6e; WData[4] = 0x20; // A1 = 10 000 First acceleration
+	tmc5160_write(WData);
+
+	WData[0] = 0xA6; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x23; WData[4] = 0x88; // AMAX = 5 000 Acceleration above V1
+	tmc5160_write(WData);
+
+	WData[0] = 0xA8; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x23; WData[4] = 0x88; // DMAX = 5 000 Deceleration above V1
+	tmc5160_write(WData);
+
+	WData[0] = 0xAA; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x6e; WData[4] = 0x20; // D1 = 10 000 Deceleration below V1
+	tmc5160_write(WData);
+
+	WData[0] = 0xAB; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x0A; // VSTOP = 10 Stop velocity (Near to zero)
+	tmc5160_write(WData);
+
+	HAL_Delay(100);
 }
 
 
