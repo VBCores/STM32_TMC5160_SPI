@@ -110,12 +110,13 @@ uint32_t pos = NEMA14_FULLSTEPS;
 int32_t pos_to_read = 0;
 int32_t vel= 800001;
 
-HAL_Delay(600);
-
-
-tmc5160_move(-vel);
-//HAL_Delay(7000);
-
+tmc5160_velocity(50000);
+tmc5160_position(10000);
+HAL_Delay(1000);
+pos_to_read = tmc5160_position_read();
+tmc5160_set_zero();
+pos_to_read = tmc5160_position_read();
+HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

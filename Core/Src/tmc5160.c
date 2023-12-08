@@ -293,6 +293,18 @@ void tmc5160_set_forward_motor_direction()
 	  tmc5160_write(WData);
 }
 
+void tmc5160_set_zero()
+{
+	uint8_t WData[5] = {0};
+	uint32_t pos = 0;
+	tmc5160_stop();
+	pos = tmc5160_position_read();
+	WData[0] = 0xA0; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x03; // RAMPMODE = 3 (HOLD mode)
+	tmc5160_write(WData);
+	tmc5160_position(pos);
+}
+
+
 
 void tmc5160_disarm()
 {
@@ -307,21 +319,13 @@ void tmc5160_arm()
 void tmc5160_stop()
 {
 	uint8_t WData[5] = {0};
-	uint8_t RData[5] = {0};
-	WData[0] = 0x21; //XACTUAL register address
-	tmc5160_read(WData, RData);
 
-	int32_t response = 0;
+	WData[0] = 0xA3; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x00; // Start acceleration = 10 (Near start)
+	tmc5160_write(WData);
 
-    response |= (RData[1]);
-    response <<= 8;
-    response |= (RData[2]);
-    response <<= 8;
-    response |= (RData[3]);
-    response <<= 8;
-    response |= (RData[4]);
-
-    tmc5160_position(response);
+	//VMAX
+	WData[0] = 0xA7; WData[1] = 0x00; WData[2] = 0x00; WData[3] = 0x00; WData[4] = 0x00;
+	tmc5160_write(WData);
 }
 
 
