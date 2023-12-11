@@ -56,6 +56,8 @@ void tmc5160_set_inverse_motor_direction();
 
 void tmc5160_set_forward_motor_direction();
 
+void tmc5160_set_zero();
+
 void tmc5160_arm();
 
 void tmc5160_disarm();

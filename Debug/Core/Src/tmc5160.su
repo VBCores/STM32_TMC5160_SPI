@@ -11,10 +11,10 @@
 ../Core/Src/tmc5160.c:282:6:tmc5160_set_inverse_motor_direction	16	static
 ../Core/Src/tmc5160.c:289:6:tmc5160_set_forward_motor_direction	16	static
 ../Core/Src/tmc5160.c:296:6:tmc5160_set_zero	24	static
-../Core/Src/tmc5160.c:309:6:tmc5160_disarm	8	static
-../Core/Src/tmc5160.c:314:6:tmc5160_arm	8	static
-../Core/Src/tmc5160.c:319:6:tmc5160_stop	16	static
-../Core/Src/tmc5160.c:333:9:sign_extend_bits_to_32	32	static
-../Core/Src/tmc5160.c:351:8:clamp_value_noref	32	static
-../Core/Src/tmc5160.c:357:6:clamp_value	24	static
-../Core/Src/tmc5160.c:362:9:torque_to_curent	32	static
+../Core/Src/tmc5160.c:322:6:tmc5160_disarm	8	static
+../Core/Src/tmc5160.c:327:6:tmc5160_arm	8	static
+../Core/Src/tmc5160.c:332:6:tmc5160_stop	24	static
+../Core/Src/tmc5160.c:350:9:sign_extend_bits_to_32	32	static
+../Core/Src/tmc5160.c:368:8:clamp_value_noref	32	static
+../Core/Src/tmc5160.c:374:6:clamp_value	24	static
+../Core/Src/tmc5160.c:379:9:torque_to_curent	32	static
