@@ -24,7 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include <tmc5160.h>
+#include "tmc5160.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,9 +51,6 @@
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-/*
- * Limits for w  (10<w<100)
- */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -99,17 +96,12 @@ int main(void)
 
   tmc5160_init();
 
-  //pick rotation direction, forward by default
-  //tmc5160_set_forward_motor_direction();
-  //tmc5160_set_inverse_motor_direction();
-
-while (1)
-{
-
-tmc5160_position(10000);
-HAL_Delay(1000);
-tmc5160_set_zero();
-HAL_Delay(1000);
+  while (1)
+  {
+    tmc5160_set_pos(0.064);
+    HAL_Delay(1000);
+    tmc5160_set_pos(0.0);
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
